@@ -17,7 +17,7 @@
 
 ### 准备使用的模型数据为:
 1. [https://www.kaggle.com/code/mathchi/credit-risk-evaluation](https://www.kaggle.com/code/mathchi/credit-risk-evaluation)
-2. [https://www.kaggle.com/datasets/ranadeep/credit-risk-dataset](https://www.kaggle.com/datasets/ranadeep/credit-risk-dataset)
+2. [https://www.kaggle.com/datasets/ranadeep/credit-risk-dataset](https://www.kaggle.com/datasets/ranadeep/credit-risk-dataset) <font color=green/> √ <font>
 3. [https://www.kaggle.com/datasets/laotse/credit-risk-dataset](https://www.kaggle.com/datasets/laotse/credit-risk-dataset)
 
 
