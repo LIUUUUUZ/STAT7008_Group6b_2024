@@ -8,6 +8,9 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from joblib import dump, load
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.decomposition import PCA
+from catboost import CatBoostClassifier, Pool
+import numpy as np
 
 def sub_grades_encoding(x: str) -> float:
         val = 0
@@ -257,7 +260,7 @@ class DataLoader():
         self.data: pd.DataFrame = data
         self.encodered: bool = False
         self.splited: bool = False
-        self.flitered: bool = False
+        self.filtered: bool = False
     
     def encoder(self) -> None:
         if self.encodered:
@@ -300,17 +303,20 @@ class DataLoader():
         '''
         if not self.splited:
             print('Data not splited, please split the data first')
-            return
+            return []
         features_selected: list = []
         if mode == 'random':
             features_selected: list = self.x_train.columns.to_list()[:15]
             self.x_train_filtered: pd.DataFrame = self.x_train[features_selected]
             self.x_test_filtered: pd.DataFrame = self.x_test[features_selected]
         elif mode == 'pca':
-            pass
+            pca = PCA(n_components = 15)
+            pca.fit(self.x_train)
+            self.x_train_filtered = pd.DataFrame(pca.transform(self.x_train))
+            self.x_test_filtered = pd.DataFrame(pca.transform(self.x_test))
 
-        self.flitered: bool = True
-            
+        self.filtered: bool = True
+        return [self.x_train_filtered, self.x_test_filtered, self.y_train, self.y_test]
 
     def get_data(self) -> pd.DataFrame:
         return self.data
@@ -322,8 +328,107 @@ class DataLoader():
         return self.x_train, self.x_test, self.y_train, self.y_test
     
     def get_filtered_data(self) -> tuple:
-        if not self.flitered:
+        if not self.filtered:
             print('Data not filtered, please filter the data first')
             return None, None, None, None
         return self.x_train_filtered, self.x_test_filtered, self.y_train, self.y_test
 
+class CatBoostDataLoader(DataLoader):
+    def __init__(self, data):
+        super().__init__(data)
+
+    def run_catboost(self):
+        # 编码
+        self.catboost_encoder()
+
+        # 分割
+        self.catboost_split_data()
+
+        # 特征选择
+        selected_features = self.catboost_feature_selection()
+
+
+    def catboost_encoder(self) -> None:
+        if self.encodered:
+            print('Data already encoded')
+            return
+        # 自定义映射
+        self.data['sub_grade'] = self.data['sub_grade'].apply(sub_grades_encoding)
+        self.data['verification_status'] = self.data['verification_status'].apply(verification_status)
+
+        # 标签编码
+        label_encoder = LabelEncoder()
+        self.data['term'] = label_encoder.fit_transform(self.data['term'])
+        self.data['initial_list_status'] = label_encoder.fit_transform(self.data['initial_list_status'])
+
+        # 不进行独热编码，保留原始类别特征，将目标变量进行编码
+        self.data['loan_status'] = self.data['loan_status'].apply(loan_status)
+
+        self.encodered: bool = True
+
+    def catboost_split_data(self, dataset_size=0.1, test_size=0.3, random=True) -> None:
+        if self.splited:
+            print('Data already split')
+            return
+        if not self.encodered and not self.filled:
+            print('Data not encoded or filled, please encode and fill the data first')
+            return
+        x = self.data.drop(columns=['loan_status'])
+        y = self.data['loan_status']
+        x_rest, self.X, y_rest, self.Y = train_test_split(
+            x, y, test_size=dataset_size, random_state=1 if random else None)
+        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
+            self.X, self.Y, test_size=test_size, random_state=1 if random else None, stratify=self.Y, shuffle=True)
+        self.splited = True
+
+        # 确保类别特征的数据类型为字符串
+        categorical_cols = self.x_train.select_dtypes(exclude=[np.number]).columns
+        for col in categorical_cols:
+            self.x_train[col] = self.x_train[col].astype(str)
+            self.x_test[col] = self.x_test[col].astype(str)
+
+        # 对数值型特征进行归一化
+        numeric_features = self.x_train.select_dtypes(include=[np.number]).columns
+        scaler = MinMaxScaler()
+        self.x_train[numeric_features] = scaler.fit_transform(self.x_train[numeric_features])
+        self.x_test[numeric_features] = scaler.transform(self.x_test[numeric_features])
+
+    def catboost_feature_selection(self) -> list:
+        # 确保数据已分割
+        if not self.splited:
+            print('Data not split, please split the data first')
+            return []
+
+        # 获取类别特征的列名
+        categorical_features = self.x_train.select_dtypes(include=['object']).columns.tolist()
+
+        # 定义数据池
+        train_pool = Pool(data=self.x_train, label=self.y_train, cat_features=categorical_features)
+
+        # 初始化并训练模型
+        model = CatBoostClassifier(iterations=100, learning_rate=0.1, depth=6, verbose=False)
+        model.fit(train_pool)
+
+        # 获取特征重要性
+        importances = model.get_feature_importance()
+        feature_names = self.x_train.columns
+        feature_importance = pd.DataFrame({'feature': feature_names, 'importance': importances})
+
+        # 按重要性排序，选择前15个特征
+        feature_importance.sort_values(by='importance', ascending=False, inplace=True)
+        selected_features = feature_importance.head(15)['feature'].tolist()
+
+        print(f"Selected features ({len(selected_features)}): {selected_features}")
+
+        # 更新过滤后的数据
+        self.x_train_filtered = self.x_train[selected_features]
+        self.x_test_filtered = self.x_test[selected_features]
+        self.filtered = True
+
+        return [self.x_train_filtered, self.x_test_filtered, self.y_train, self.y_test]
+
+    def get_data(self) -> pd.DataFrame:
+        return self.data
+
+    def get_filtered_data(self) -> tuple:
+        return super().get_filtered_data()
