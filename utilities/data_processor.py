@@ -9,7 +9,6 @@ from sklearn.model_selection import train_test_split
 from joblib import dump, load
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import PCA
-from catboost import CatBoostClassifier, Pool
 import numpy as np
 
 def sub_grades_encoding(x: str) -> float:
@@ -335,6 +334,7 @@ class DataLoader():
 
 class CatBoostDataLoader(DataLoader):
     def __init__(self, data):
+        from catboost import CatBoostClassifier, Pool
         super().__init__(data)
 
     def run_catboost(self):
