@@ -81,11 +81,19 @@ class CloudData():
         if self.get_user(user['email']) is not None:
             return [False, "User_email already exists"]
         self._insert_data('users', user)
-        
+
         return [True, "User added successfully"]
 
     def delete_user(self, user_name: str) -> None:
         self.db['users'].delete_one({"name":user_name})
+
+    def user_login(self, user_name: str, user_pwd: str) -> list[bool, str]:
+        user = self.get_user(user_name)
+        if user is None:
+            return [False, "User not found"]
+        if user['password'] != user_pwd:
+            return [False, "Password incorrect"]
+        return [True, "Login successful"]
 
     def __del__(self) -> None:
         self.client.close()
