@@ -13,7 +13,7 @@ class ChatBot():
         self.init_prompt: str = init_prompt
         self.messages = [SystemMessage(content = self.init_prompt)]
 
-    def send_message(self, human_input: str) -> str:
+    def _send_message(self, human_input: str) -> str:
         self.messages.append(HumanMessage(content=human_input))
         response = self.chat(self.messages)
         self.messages.append(AIMessage(content = response.content))
@@ -22,7 +22,7 @@ class ChatBot():
         return response.content
 
     def __call__(self, human_input: str) -> str:
-        return self.send_message(human_input)
+        return self._send_message(human_input)
     
     def set_api_key(self, api_key: str):
         openai.api_key = api_key
