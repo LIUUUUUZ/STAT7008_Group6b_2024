@@ -10,4 +10,4 @@ if st.session_state.get("is_logged_in"):
     st.sidebar.title("可在sidebar中添加所需部分")
 
 else:
-    pass
+    st.switch_page("./Homepage.py")
