@@ -3,4 +3,6 @@ pycountry==22.3.5
 pytest==7.4.0
 pytest-cov==4.1.0
 requests==2.31.0
-streamlit
+pymongo
+streamlit==24.3.1
+st-chat-message

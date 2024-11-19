@@ -7,7 +7,7 @@ from langchain.schema import (
 )
 
 class ChatBot():
-    def __init__(self, api_key: str = "", init_prompt: str = ""):
+    def __init__(self, api_key: str = "", init_prompt: str = "") -> None:
         openai.api_key = api_key
         self.chat = ChatOpenAI(openai_api_base="https://chatapi.littlewheat.com/v1", openai_api_key=openai.api_key)
         self.init_prompt: str = init_prompt
@@ -24,9 +24,12 @@ class ChatBot():
     def __call__(self, human_input: str) -> str:
         return self._send_message(human_input)
     
-    def set_api_key(self, api_key: str):
+    def set_api_key(self, api_key: str) -> None:
         openai.api_key = api_key
         self.chat = ChatOpenAI(openai_api_base="https://chatapi.littlewheat.com/v1", openai_api_key=openai.api_key)
+
+    def reset(self) -> None:
+        self.messages = [SystemMessage(content = self.init_prompt)]
 
     
     def __str__(self) -> str:

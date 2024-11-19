@@ -1,13 +1,29 @@
 import streamlit as st
+from utilities.chatbot import ChatBot
+from utilities.mongodb import CloudData
 
 st.set_page_config(
-    page_title="Homepage",
+    page_title="STAT7008B Group6b HomePage",
     page_icon="👋",
 )
 
+if "chat_bot_init" not in st.session_state:
+    st.session_state.chat_bot_init = True
 
 
 if st.session_state.get("is_logged_in"):
+
+    if 'messages' not in st.session_state:
+        st.session_state.messages = []
+
+    if st.session_state.chat_bot_init:
+        cd = CloudData()
+        api_key = cd.get_settings()['api_key']
+        init_prompt = cd.get_settings()['init_prompt']
+        st.session_state.chat_bot = ChatBot(api_key, init_prompt)
+        st.session_state.chat_bot_init = False
+        st.session_state.messages.append({"role": "assistant", "content": "I am the credit risk ChatBot serving STAT7008B Group6b. How can I assist you?"})
+        st.rerun()
     
     st.sidebar.page_link(page="Homepage.py", label="Homepage")
     st.sidebar.page_link(page="pages/chatbot.py", label="Chatbot")

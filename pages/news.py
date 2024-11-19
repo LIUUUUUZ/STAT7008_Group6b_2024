@@ -19,6 +19,11 @@ from typing import Any, Dict, Optional
 from requests.adapters import HTTPAdapter
 
 
+st.set_page_config(
+    page_title="STAT7008B Group6b News",
+    page_icon="👋",
+)
+
 class NewsAPIConnection(BaseConnection[requests.session]):
     """
     Handles a connection with the NewsAPI and retrieves news articles.

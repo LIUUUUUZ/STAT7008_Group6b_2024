@@ -54,7 +54,8 @@ class CloudData():
         return data['settings']
     
     def update_settings(self, settings: dict) -> None:
-        assert len(settings) == 1
+        assert len(settings) == 2
+        assert "init_prompt" in settings
         assert "api_key" in settings
 
         db_settings = {"name":"settings",
