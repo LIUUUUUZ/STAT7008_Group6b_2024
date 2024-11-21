@@ -8,7 +8,6 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from joblib import load
 from sklearn.preprocessing import MinMaxScaler
-from catboost import CatBoostClassifier, Pool
 import numpy as np
 
 def sub_grades_encoding(x: str) -> float:
@@ -339,6 +338,7 @@ class DataLoader():
             selected_features = self.x_train.columns.to_list()[:15]
 
         elif self.mode == "catboost":
+            from catboost import CatBoostClassifier, Pool
             # 获取类别特征的列名
             categorical_features = self.x_train.select_dtypes(include=['object']).columns.tolist()
 

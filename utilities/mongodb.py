@@ -2,7 +2,7 @@ import json
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-
+import re
 
 
 class CloudData():
@@ -77,6 +77,10 @@ class CloudData():
         assert "name" in user
         assert "email" in user
         assert "password" in user
+        if not  re.match(r"[^@]+@[^@]+\.[^@]+", user['email']):
+            return [False, "Invalid email format"]
+        if user['name'] == "" or user['email'] == "" or user['password'] == "":
+            return [False, "Please fill in all fields"]
         if self.get_user(user['name']) is not None:
             return [False, "User_name already exists"]
         if self.get_user(user['email']) is not None:
@@ -95,6 +99,17 @@ class CloudData():
         if user['password'] != user_pwd:
             return [False, "Password incorrect"]
         return [True, "Login successful"]
+    
+    def forget_password(self, user_name: str, email:str) -> None:
+        if user_name == "admin":
+            return [False, "Cannot find admin password"]
+        user = self.get_user(user_name)
+        if user is None:
+            return [False, "User not found"]
+        if user['email'] != email:
+            return [False, "Email incorrect"]
+        return [True, f"Your password is {user['password']}"]
+
 
     def __del__(self) -> None:
         self.client.close()
