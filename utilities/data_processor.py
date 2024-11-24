@@ -287,36 +287,34 @@ class DataLoader():
         self.data['loan_status'] = self.data['loan_status'].apply(loan_status)
         self.encodered: bool = True
 
-    def split_data(self, dataset_size = 0.1, test_size: float = 0.3, random: bool = True, MAXMIN: bool = True) -> tuple:
+    def split_data(self, dataset_size=0.1, test_size: float = 0.3, random: bool = True, MAXMIN: bool = True) -> tuple:
         if self.splited:
             print('Data already splited')
             return
         if not self.encodered and not self.filled:
             print('Data not encoded or filled, please encode and fill the data first')
             return
+
         x: pd.DataFrame = self.data.drop(columns=['loan_status'])
         y: pd.DataFrame = self.data['loan_status']
-        x_rest, self.X, y_rest, self.Y = train_test_split(x, y, test_size=dataset_size, random_state=1 if random else None)
-        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(self.X, self.Y, test_size=test_size, random_state=1 if random else None, stratify=self.Y, shuffle=True)
+        x_rest, self.X, y_rest, self.Y = train_test_split(
+            x, y, test_size=dataset_size, random_state=1 if random else None
+        )
+        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
+            self.X, self.Y, test_size=test_size, random_state=1 if random else None, stratify=self.Y, shuffle=True
+        )
         self.splited: bool = True
 
-        if self.mode == "random" and MAXMIN:
-            # 默认归一化
-            self.x_train = maxmin_scaler(self.x_train)
-            self.x_test = maxmin_scaler(self.x_test)
-        
+        if self.mode == "random":
+            # 随机模式，无归一化
+            pass
+
         elif self.mode == "catboost":
-            # CatBoost模式处理分类特征为字符串
+            # CatBoost模式仅处理分类特征为字符串
             categorical_cols = self.x_train.select_dtypes(exclude=[np.number]).columns
             for col in categorical_cols:
                 self.x_train[col] = self.x_train[col].astype(str)
                 self.x_test[col] = self.x_test[col].astype(str)
-
-            # 对数值型特征进行归一化
-            numeric_features = self.x_train.select_dtypes(include=[np.number]).columns
-            scaler = MinMaxScaler()
-            self.x_train[numeric_features] = scaler.fit_transform(self.x_train[numeric_features])
-            self.x_test[numeric_features] = scaler.transform(self.x_test[numeric_features])
 
         return self.x_train, self.x_test, self.y_train, self.y_test
 
