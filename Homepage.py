@@ -87,7 +87,10 @@ else:
             password_confirm = st.text_input("Confirm Password", type="password")
             register = st.button("Register")
             if register:
-                reg_status, info = st.session_state.cd.add_user({"name":username, "email":email, "password":password})
+                if password != password_confirm:
+                    reg_status, info = False, "Password and Confirm Password do not match"
+                else:
+                    reg_status, info = st.session_state.cd.add_user({"name":username, "email":email, "password":password})
                 if reg_status:
                     st.success(info)
                     st.session_state["is_logged_in"] = True
