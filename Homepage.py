@@ -2,7 +2,8 @@ import streamlit as st
 from utilities.chatbot import ChatBot
 from utilities.mongodb import CloudData
 from time import sleep
-
+from utilities.XGBoost_Predictor import XGBoostPredictor
+from utilities.data_processor import sub_grades_encoding
 st.set_page_config(
     page_title="STAT7008B Group6b HomePage",
     page_icon="👋",
@@ -26,6 +27,9 @@ if st.session_state.get("is_logged_in"):
         api_key = st.session_state.cd.get_settings()['api_key']
         init_prompt = st.session_state.cd.get_settings()['init_prompt']
         st.session_state.chat_bot = ChatBot(api_key, init_prompt)
+        st.session_state.risk_predictor = XGBoostPredictor()
+        st.session_state.risk_predictor.load_model_and_stats("models/xgboost_model.json", "models/feature_medians.json")
+        st.session_state.subgrade_encoder = sub_grades_encoding
         st.session_state.chat_bot_init = False
         st.session_state.messages.append({"role": "assistant", "content": "I am the credit risk ChatBot serving STAT7008B Group6b. How can I assist you?"})
         st.rerun()
