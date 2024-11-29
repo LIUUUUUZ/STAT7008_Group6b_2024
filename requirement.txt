@@ -7,3 +7,4 @@ pymongo==4.10.1
 streamlit==24.3.1
 st-chat-message
 xgboost==2.1.2
+seaborn
