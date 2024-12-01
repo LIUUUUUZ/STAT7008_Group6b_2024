@@ -37,3 +37,6 @@
 3. 此项目UI及chatbot搭建等交互设计：刘知闲， 连子清
          
 
+### 运行project： 在项目文件里运行 streamlit run Homepage.py
+
+### [https://youtu.be/XaFjIcuxv0A](Demo Video)
