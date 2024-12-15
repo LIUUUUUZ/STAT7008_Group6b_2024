@@ -2,7 +2,6 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from st_chat_message import message
-import streamlit_scrollable_textbox as stx
 
 def clear_message():
     st.session_state.messages = []
